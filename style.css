@@ -27,10 +27,15 @@ button.danger { background: #d64747; }
 .tile .poi-name { font-size: 12px; text-align: center; color: #44506d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.05; }
 .tile .tag { font-size: 12px; text-align: center; line-height: 1.05; }
 .tile .owner { font-size: 12px; color: #0a7f53; text-align: center; min-height: 12px; line-height: 1.05; }
-.tile .tokens { font-size: 12px; text-align: center; line-height: 1.05; }
-.tile.owned { background: color-mix(in oklab, var(--owner-color, #6a8cff) 22%, white); border-color: var(--owner-color, #6a8cff); }
+.tile .tokens { font-size: 20px; font-weight: 800; text-align: center; line-height: 1; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+.tile.owned { background: color-mix(in oklab, var(--owner-color, #6a8cff) 58%, #1b2338); border-color: color-mix(in oklab, var(--owner-color, #6a8cff) 75%, #111); color: #fff; }
 .tile.occupied { background: color-mix(in oklab, var(--occ-color, #6a8cff) 18%, white); border-color: var(--occ-color, #6a8cff); }
 .tile.active { outline: 3px solid var(--occ-color, #ffb302); box-shadow: 0 0 0 2px #fff inset, 0 0 10px var(--occ-color, #ffb302); z-index: 3; }
+.tile.owned .idx,
+.tile.owned .poi-name,
+.tile.owned .tag,
+.tile.owned .owner,
+.tile.owned .tokens { color: #f4f7ff; }
 .players { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .player { border: none; border-radius: 0; padding: 7px; background: #fafcff; }
 .player.current { background: #eef3ff; }
