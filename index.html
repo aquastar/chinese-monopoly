@@ -41,9 +41,11 @@
           <svg id="pathLines" class="path-lines"></svg>
 
           <div class="center-hub">
-            <div id="centerChar" class="center-char">？</div>
+            <section class="panel-lite cell-char">
+              <div id="centerChar" class="center-char">？</div>
+            </section>
 
-            <section class="panel-lite controls">
+            <section class="panel-lite cell-controls controls">
               <h2>操作</h2>
               <p id="turnInfo"></p>
               <button id="rollBtn">掷骰子</button>
@@ -61,12 +63,12 @@
               <button id="nextTurn" class="hidden">下一位</button>
             </section>
 
-            <section class="panel-lite">
+            <section class="panel-lite cell-players">
               <h2>玩家状态</h2>
               <div id="players" class="players"></div>
             </section>
 
-            <section class="panel-lite">
+            <section class="panel-lite cell-log">
               <h2>日志</h2>
               <div id="log" class="log"></div>
             </section>

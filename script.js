@@ -39,21 +39,24 @@ const poiTemplates = [
   ['Science Ctr','SCI','#00695c'],['Art Studio','ART','#ad1457'],['Music Hall','MUSI','#5e35b1'],['Skate Park','SK8','#00897b'],['Water Park','WPK','#0277bd']
 ].map(([name,logo,color]) => ({ name, logo, color }));
 
-const TILE_SIZE = 92;
+const TILE_SIZE = 72;
 
-function generatePath(count = 50) {
-  // 方形边缘路线：按周长等距采样（不交叉，数量精确）
-  const left = 28, top = 28;
-  const right = 1320 - TILE_SIZE - 28;
-  const bottom = 860 - TILE_SIZE - 28;
+function generatePath(count = 50, boardW = 1320, boardH = 860) {
+  // 方形边缘路线：严格防重叠（步长 >= TILE_SIZE + 2）
+  const margin = 24;
+  const left = margin;
+  const top = margin;
+  const right = Math.max(left + 400, boardW - TILE_SIZE - margin);
+  const bottom = Math.max(top + 300, boardH - TILE_SIZE - margin);
   const w = right - left;
   const h = bottom - top;
   const perimeter = 2 * (w + h);
-  const step = perimeter / count;
+  const minStep = TILE_SIZE + 2;
+  const step = Math.max(minStep, perimeter / count);
 
   const path = [];
   for (let i = 0; i < count; i++) {
-    let d = i * step;
+    let d = (i * step) % perimeter;
     let x, y;
     if (d < w) {
       x = left + d; y = top;
@@ -90,6 +93,11 @@ el.wrongBtn.addEventListener('click', () => judge(false));
 el.buyYes.addEventListener('click', () => handleBuy(true));
 el.buyNo.addEventListener('click', () => handleBuy(false));
 el.nextTurn.addEventListener('click', nextTurn);
+window.addEventListener('resize', () => {
+  if (!game.board.length) return;
+  game.path = generatePath(game.board.length, el.board.clientWidth, el.board.clientHeight);
+  render();
+});
 
 function renderNameInputs() {
   const n = Number(el.playerCount.value);
@@ -132,7 +140,7 @@ function initGame() {
     });
   }
 
-  game.path = generatePath(50);
+  game.path = generatePath(50, el.board.clientWidth, el.board.clientHeight);
   const size = game.path.length;
   game.board = Array.from({ length: size }, (_, i) => {
     const poi = poiTemplates[i % poiTemplates.length];
@@ -426,10 +434,9 @@ function render() {
     const tag = tile.type === 'penalty' ? '⚠️惩罚格' : tile.type === 'start' ? '🏁起点' : `📘识字格 费${tile.level >= 2 ? 2 : 1}`;
     const here = herePlayers.map(p => p.icon).join(' ');
     const [left, top] = game.path[tile.i];
-    const rot = ((tile.i * 7) % 6) - 3;
     div.style.left = `${left}px`;
     div.style.top = `${top}px`;
-    div.style.transform = `rotate(${rot}deg)`;
+    div.style.transform = 'none';
     div.innerHTML = `<div class="idx">#${tile.i}</div><div class="logo" style="background:${tile.poiColor}">${tile.poiLogo}</div><div class="poi-name">${tile.poiName}</div><div class="tag">${tag}</div><div class="owner">${ownerName}</div><div class="tokens">${here}</div>`;
     el.board.appendChild(div);
     points.push([left + TILE_SIZE / 2, top + TILE_SIZE / 2]);
