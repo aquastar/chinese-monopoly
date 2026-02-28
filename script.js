@@ -39,19 +39,20 @@ const poiTemplates = [
   ['Science Ctr','SCI','#00695c'],['Art Studio','ART','#ad1457'],['Music Hall','MUSI','#5e35b1'],['Skate Park','SK8','#00897b'],['Water Park','WPK','#0277bd']
 ].map(([name,logo,color]) => ({ name, logo, color }));
 
-const TILE_SIZE = 72;
+const TILE_W = 72;
+const TILE_H = 102;
 
 function generatePath(count = 50, boardW = 1320, boardH = 860) {
-  // 方形边缘路线：严格防重叠（步长 >= TILE_SIZE + 2）
+  // 方形边缘路线：严格防重叠（步长 >= 方格尺寸 + 2）
   const margin = 24;
   const left = margin;
   const top = margin;
-  const right = Math.max(left + 400, boardW - TILE_SIZE - margin);
-  const bottom = Math.max(top + 300, boardH - TILE_SIZE - margin);
+  const right = Math.max(left + 400, boardW - TILE_W - margin);
+  const bottom = Math.max(top + 300, boardH - TILE_H - margin);
   const w = right - left;
   const h = bottom - top;
   const perimeter = 2 * (w + h);
-  const minStep = TILE_SIZE + 2;
+  const minStep = Math.max(TILE_W, TILE_H) + 2;
   const step = Math.max(minStep, perimeter / count);
 
   const path = [];
@@ -442,7 +443,7 @@ function render() {
     div.style.transform = 'none';
     div.innerHTML = `<div class="idx">#${tile.i}</div><div class="logo" style="background:${tile.poiColor}">${tile.poiLogo}</div><div class="poi-name">${tile.poiName}</div><div class="tag">${tag}</div><div class="owner">${ownerName}</div><div class="tokens">${here}</div>`;
     el.board.appendChild(div);
-    points.push([left + TILE_SIZE / 2, top + TILE_SIZE / 2]);
+    points.push([left + TILE_W / 2, top + TILE_H / 2]);
   }
 
   renderPathLines(points);
@@ -472,9 +473,9 @@ function renderPathLines(points) {
   if (!el.pathLines) return;
   const ns = 'http://www.w3.org/2000/svg';
   el.pathLines.innerHTML = '';
-  for (let i = 0; i < points.length - 1; i++) {
+  for (let i = 0; i < points.length; i++) {
     const [x1, y1] = points[i];
-    const [x2, y2] = points[i + 1];
+    const [x2, y2] = points[(i + 1) % points.length];
     const line = document.createElementNS(ns, 'line');
     line.setAttribute('x1', x1);
     line.setAttribute('y1', y1);
