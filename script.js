@@ -445,13 +445,17 @@ function render() {
     const currentPlayer = game.players[game.current];
     const hasCurrent = currentPlayer && currentPlayer.pos === tile.i;
     const herePlayers = game.players.filter(p => !p.eliminated && p.pos === tile.i);
-    div.className = 'tile' + (hasCurrent ? ' active' : '') + (herePlayers.length ? ' occupied' : '');
+    const ownedClass = tile.owner !== null ? ' owned' : '';
+    div.className = 'tile' + ownedClass + (hasCurrent ? ' active' : '') + (herePlayers.length ? ' occupied' : '');
+    if (tile.owner !== null) {
+      div.style.setProperty('--owner-color', game.players[tile.owner].color);
+    }
     if (herePlayers.length) {
       const color = hasCurrent ? currentPlayer.color : herePlayers[0].color;
       div.style.setProperty('--occ-color', color);
     }
     const ownerName = tile.owner === null ? '' : `地主：${game.players[tile.owner].icon}${game.players[tile.owner].name} Lv${tile.level}`;
-    const tag = tile.type === 'penalty' ? '⚠️惩罚格' : tile.type === 'start' ? '🏁起点' : `📘识字格 费${tile.level >= 2 ? 2 : 1}`;
+    const tag = tile.type === 'penalty' ? '⚠️惩罚格' : tile.type === 'start' ? '🏁起点' : '';
     const here = herePlayers.map(p => p.icon).join(' ');
     const [left, top] = game.path[tile.i];
     div.style.left = `${left}px`;
