@@ -42,13 +42,29 @@ const poiTemplates = [
 const TILE_SIZE = 92;
 
 function generatePath(count = 50) {
-  const cx = 590, cy = 305, rx = 500, ry = 250;
+  // 方形边缘路线：按周长等距采样（不交叉，数量精确）
+  const left = 28, top = 28;
+  const right = 1320 - TILE_SIZE - 28;
+  const bottom = 860 - TILE_SIZE - 28;
+  const w = right - left;
+  const h = bottom - top;
+  const perimeter = 2 * (w + h);
+  const step = perimeter / count;
+
   const path = [];
   for (let i = 0; i < count; i++) {
-    const t = (Math.PI * 2 * i) / count - Math.PI / 2;
-    const x = Math.round(cx + rx * Math.cos(t) - TILE_SIZE / 2);
-    const y = Math.round(cy + ry * Math.sin(t) - TILE_SIZE / 2);
-    path.push([x, y]);
+    let d = i * step;
+    let x, y;
+    if (d < w) {
+      x = left + d; y = top;
+    } else if (d < w + h) {
+      d -= w; x = right; y = top + d;
+    } else if (d < 2 * w + h) {
+      d -= (w + h); x = right - d; y = bottom;
+    } else {
+      d -= (2 * w + h); x = left; y = bottom - d;
+    }
+    path.push([Math.round(x), Math.round(y)]);
   }
   return path;
 }
