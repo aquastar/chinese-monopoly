@@ -140,8 +140,7 @@ function initGame() {
     });
   }
 
-  game.path = generatePath(50, el.board.clientWidth, el.board.clientHeight);
-  const size = game.path.length;
+  const size = 50;
   game.board = Array.from({ length: size }, (_, i) => {
     const poi = poiTemplates[i % poiTemplates.length];
     let type = 'char';
@@ -168,8 +167,12 @@ function initGame() {
 
   el.setupPanel.classList.add('hidden');
   document.getElementById('gamePanel').classList.remove('hidden');
-  log('游戏开始。');
-  render();
+
+  requestAnimationFrame(() => {
+    game.path = generatePath(game.board.length, el.board.clientWidth, el.board.clientHeight);
+    log('游戏开始。');
+    render();
+  });
 }
 
 function rollDice() {

@@ -8,13 +8,7 @@
 </head>
 <body>
   <div class="app">
-    <header>
-      <h1>识字大富翁（教学版）</h1>
-      <p>玩家掷骰子 → 读字 → 裁判判定对错 → 获得金币/买地/触发惩罚（答对可免罚）</p>
-    </header>
-
     <section class="panel setup" id="setupPanel">
-      <h2>初始化</h2>
       <div class="row">
         <label>玩家数量</label>
         <select id="playerCount">
@@ -46,7 +40,6 @@
             </section>
 
             <section class="panel-lite cell-controls controls">
-              <h2>操作</h2>
               <p id="turnInfo"></p>
               <button id="rollBtn">掷骰子</button>
               <p id="rollResult"></p>
@@ -64,12 +57,10 @@
             </section>
 
             <section class="panel-lite cell-players">
-              <h2>玩家状态</h2>
               <div id="players" class="players"></div>
             </section>
 
             <section class="panel-lite cell-log">
-              <h2>日志</h2>
               <div id="log" class="log"></div>
             </section>
           </div>
