@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>识字大富翁（教学版）</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>识字大富翁（教学版）</h1>
+      <p>玩家掷骰子 → 读字 → 裁判判定对错 → 获得金币/买地/触发惩罚（答对可免罚）</p>
+    </header>
+
+    <section class="panel setup" id="setupPanel">
+      <h2>初始化</h2>
+      <div class="row">
+        <label>玩家数量</label>
+        <select id="playerCount">
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4" selected>4</option>
+        </select>
+      </div>
+      <div id="playerNames"></div>
+      <div class="row">
+        <label>初始金币</label>
+        <input id="startCoins" type="number" value="20" min="1" />
+      </div>
+      <div class="row">
+        <label>字表（可替换，逗号/空格/换行分隔）</label>
+        <textarea id="charList" rows="6"></textarea>
+      </div>
+      <button id="startGame">开始游戏</button>
+    </section>
+
+    <section class="panel game hidden" id="gamePanel">
+      <div class="map-wrap">
+        <h2>地图棋盘（45格 POI）</h2>
+        <div id="board" class="board">
+          <svg id="pathLines" class="path-lines"></svg>
+        </div>
+      </div>
+
+      <div class="bottom-panels">
+        <section class="panel-lite controls">
+          <h2>操作</h2>
+          <p id="turnInfo"></p>
+          <button id="rollBtn">掷骰子</button>
+          <p id="rollResult"></p>
+          <div id="judgeArea" class="hidden">
+            <p id="challengeText"></p>
+            <button id="correctBtn">裁判：读对了</button>
+            <button id="wrongBtn" class="danger">裁判：读错了</button>
+          </div>
+          <div id="buyArea" class="hidden">
+            <p id="buyText"></p>
+            <button id="buyYes">购买地皮</button>
+            <button id="buyNo">不买</button>
+          </div>
+          <button id="nextTurn" class="hidden">下一位</button>
+        </section>
+
+        <section class="panel-lite">
+          <h2>玩家状态</h2>
+          <div id="players" class="players"></div>
+        </section>
+
+        <section class="panel-lite">
+          <h2>日志</h2>
+          <div id="log" class="log"></div>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
