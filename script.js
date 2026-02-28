@@ -135,7 +135,7 @@ function initGame() {
   if (chars.length < 30) return alert('字表太少，至少建议 30 个字。');
 
   const n = Number(el.playerCount.value);
-  const startCoins = Number(el.startCoins.value || 20);
+  const startCoins = Number(el.startCoins.value || 100);
   const animals = ['🐯','🐰','🐼','🐵','🦊','🐸'];
   const colors = ['#e74c3c', '#3498db', '#27ae60', '#f39c12', '#8e44ad', '#16a085'];
   game.players = [];
@@ -152,6 +152,7 @@ function initGame() {
       skip: 0,
       attempts: 0,
       correct: 0,
+      tollIncome: 0,
       eliminated: false
     });
   }
@@ -160,7 +161,6 @@ function initGame() {
   game.board = Array.from({ length: size }, (_, i) => {
     const poi = poiTemplates[i % poiTemplates.length];
     let type = 'char';
-    if ([8, 17, 26, 35, 44].includes(i)) type = 'penalty';
     if (i === 0) type = 'start';
     return {
       i,
@@ -170,7 +170,7 @@ function initGame() {
       poiColor: poi.color,
       owner: null,
       level: 0,
-      price: 8 + (i % 5)
+      price: 5
     };
   });
   game.charPool = chars;
@@ -211,7 +211,7 @@ function rollDice() {
   const tile = game.board[p.pos];
   const ch = game.charPool[Math.floor(Math.random() * game.charPool.length)];
   el.rollResult.textContent = `${p.icon} ${p.name} 掷出了 ${d} 点，来到 #${tile.i}。`;
-  game.pending = { tile, char: ch, playerId: p.id, canAvoidPenalty: tile.type === 'penalty' };
+  game.pending = { tile, char: ch, playerId: p.id };
   el.challengeText.textContent = `请 ${p.name} 读出这个字：${ch}`;
   if (el.centerChar) el.centerChar.textContent = ch;
   el.judgeArea.classList.remove('hidden');
@@ -235,44 +235,24 @@ function judge(correct) {
     p.coins += 3;
     log(`${p.icon} ${p.name} 读对“${currentChar}”，+3金币。`);
 
-    if (tile.type === 'penalty') {
-      log(`${p.name} 因答对，免除惩罚。`);
-      maybeChanceCard(p, true);
-      checkEliminationAndWinner();
-      if (!game.over) prepareNextTurn();
-      return;
-    }
-
     if (tile.type === 'char') {
       if (tile.owner === null) {
-        if (Math.random() < 0.45) {
-          showBuyDialog(p, tile);
-          return;
-        } else {
-          log('本次没有触发购买机会。');
-        }
+        showBuyDialog(p, tile);
+        return;
       } else if (tile.owner !== p.id) {
         const owner = game.players[tile.owner];
         log(`✅ ${p.name} 读对了字，免除 ${owner.name} 地块的过路费。`);
-      } else if (tile.owner === p.id && tile.level === 1) {
-        tile.level = 2;
-        log(`⬆️ ${p.name} 再次到达自己的地块 #${tile.i}，升级为 Lv2（过路费 2 金币）。`);
       }
-      maybeChanceCard(p, true);
     }
   } else {
     log(`${p.icon} ${p.name} 读错“${currentChar}”。`);
-    if (tile.type === 'penalty') {
-      applyPenalty(p);
-    } else if (tile.type === 'char' && tile.owner !== null && tile.owner !== p.id) {
+    if (tile.type === 'char' && tile.owner !== null && tile.owner !== p.id) {
       const owner = game.players[tile.owner];
-      const rent = tile.level >= 2 ? 2 : 1;
+      const rent = 1;
       p.coins -= rent;
       owner.coins += rent;
-      log(`❌ 读错触发收费：${p.name} 向 ${owner.name} 支付过路费 ${rent}（Lv${tile.level || 1}）。`);
-      maybeChanceCard(p, false);
-    } else {
-      maybeChanceCard(p, false);
+      owner.tollIncome += rent;
+      log(`❌ 读错触发收费：${p.name} 向 ${owner.name} 支付过路费 ${rent}。`);
     }
   }
 
@@ -281,7 +261,7 @@ function judge(correct) {
 }
 
 function showBuyDialog(player, tile) {
-  el.buyText.textContent = `触发购买机会：地块 #${tile.i} ${tile.poiName}，价格 ${tile.price} 金币。当前你有 ${player.coins} 金币。`;
+  el.buyText.textContent = `可购买地皮：#${tile.i} ${tile.poiName}，价格 ${tile.price} 金币。当前你有 ${player.coins} 金币。`;
   el.buyArea.classList.remove('hidden');
   game.pending.buying = true;
 }
@@ -306,7 +286,6 @@ function handleBuy(yes) {
     log(`${p.name} 放弃购买地块 #${tile.i}。`);
   }
 
-  maybeChanceCard(p, true);
   checkEliminationAndWinner();
   el.buyArea.classList.add('hidden');
   if (!game.over) prepareNextTurn();
@@ -454,8 +433,8 @@ function render() {
       const color = hasCurrent ? currentPlayer.color : herePlayers[0].color;
       div.style.setProperty('--occ-color', color);
     }
-    const ownerName = tile.owner === null ? '' : `地主：${game.players[tile.owner].icon}${game.players[tile.owner].name} Lv${tile.level}`;
-    const tag = tile.type === 'penalty' ? '⚠️惩罚格' : tile.type === 'start' ? '🏁起点' : '';
+    const ownerName = tile.owner === null ? '' : `地主：${game.players[tile.owner].icon}${game.players[tile.owner].name}`;
+    const tag = tile.type === 'start' ? '🏁起点' : '';
     const here = herePlayers.map(p => p.icon).join(' ');
     const [left, top] = game.path[tile.i];
     div.style.left = `${left}px`;
@@ -474,12 +453,14 @@ function render() {
     const card = document.createElement('div');
     card.className = 'player' + (i === game.current ? ' current' : '') + (p.eliminated ? ' eliminated' : '');
     const acc = p.attempts ? Math.round((p.correct / p.attempts) * 100) : 0;
+    const landsText = [...p.lands].sort((a, b) => a - b).map(idx => `#${idx} ${game.board[idx].poiName}`).join('、') || '无';
     card.innerHTML = `<div class="name">${p.icon} ${p.name} ${p.eliminated ? '（出局）' : ''}</div>
       <div>金币：${p.coins}</div>
       <div>位置：#${p.pos}</div>
       <div>地皮数：${p.lands.size}</div>
-      <div>识字正确率：${p.correct}/${p.attempts} (${acc}%)</div>
-      <div>跳过轮次：${p.skip}</div>`;
+      <div>地皮列表：${landsText}</div>
+      <div>过路费收入：${p.tollIncome}</div>
+      <div>识字正确率：${p.correct}/${p.attempts} (${acc}%)</div>`;
     el.players.appendChild(card);
   });
 
