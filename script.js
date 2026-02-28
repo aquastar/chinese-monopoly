@@ -10,6 +10,7 @@ const el = {
   gamePanel: document.getElementById('gamePanel'),
   board: document.getElementById('board'),
   pathLines: document.getElementById('pathLines'),
+  centerHub: document.querySelector('.center-hub'),
   centerChar: document.getElementById('centerChar'),
   players: document.getElementById('players'),
   turnInfo: document.getElementById('turnInfo'),
@@ -44,7 +45,7 @@ const TILE_H = 102;
 
 function generatePath(count = 50, boardW = 1320, boardH = 860) {
   // 方形边缘路线：严格防重叠（步长 >= 方格尺寸 + 2）
-  const margin = 24;
+  const margin = 20;
   const left = margin;
   const top = margin;
   const right = Math.max(left + 400, boardW - TILE_W - margin);
@@ -73,6 +74,19 @@ function generatePath(count = 50, boardW = 1320, boardH = 860) {
   return path;
 }
 
+function updateBoardLayout() {
+  const bw = el.board.clientWidth;
+  const bh = el.board.clientHeight;
+  const safePadX = TILE_W + 34;
+  const safePadY = TILE_H + 34;
+  const hubW = Math.max(520, bw - safePadX * 2);
+  const hubH = Math.max(360, bh - safePadY * 2);
+  if (el.centerHub) {
+    el.centerHub.style.setProperty('--hub-w', `${Math.min(hubW, bw - 24)}px`);
+    el.centerHub.style.setProperty('--hub-h', `${Math.min(hubH, bh - 24)}px`);
+  }
+}
+
 const game = {
   players: [],
   board: [],
@@ -96,6 +110,7 @@ el.buyNo.addEventListener('click', () => handleBuy(false));
 el.nextTurn.addEventListener('click', nextTurn);
 window.addEventListener('resize', () => {
   if (!game.board.length) return;
+  updateBoardLayout();
   game.path = generatePath(game.board.length, el.board.clientWidth, el.board.clientHeight);
   render();
 });
@@ -170,6 +185,7 @@ function initGame() {
   document.getElementById('gamePanel').classList.remove('hidden');
 
   requestAnimationFrame(() => {
+    updateBoardLayout();
     game.path = generatePath(game.board.length, el.board.clientWidth, el.board.clientHeight);
     log('游戏开始。');
     render();
