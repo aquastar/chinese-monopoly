@@ -12,14 +12,14 @@ button.danger { background: #d64747; }
 .hidden { display: none; }
 .panel-lite { background: #f9fbff; border: 1px solid #dfe7ff; border-radius: 10px; padding: 10px; }
 .map-wrap { margin-bottom: 10px; overflow-x: auto; }
-.board { position: relative; width: 100%; min-width: 1200px; height: 620px; background: linear-gradient(180deg,#f8fbff,#eef4ff); border: 1px solid #d9e4ff; border-radius: 14px; overflow: auto; }
+.board { position: relative; width: 100%; min-width: 1200px; height: 620px; background: radial-gradient(circle at center,#ffffff,#eef4ff); border: 1px solid #d9e4ff; border-radius: 14px; overflow: auto; }
 .path-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.center-char { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 220px; height: 220px; border-radius: 50%; background: #ffffff; border: 3px solid #9db3ff; display: flex; align-items: center; justify-content: center; font-size: 120px; font-weight: 800; color: #273a7a; z-index: 2; box-shadow: 0 4px 20px rgba(40,70,150,.18); }
 .path-lines .seg { stroke: #7fa1ff; stroke-width: 2.4; stroke-linecap: round; opacity: .9; }
 .path-lines .dot { fill: #5f7de0; }
 .tile { width: 92px; height: 92px; background: #fff; border-radius: 12px; padding: 4px; border: 1px solid #cfdcff; position: absolute; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 4px rgba(20,40,100,.08); z-index: 2; transition: .15s ease; }
 .tile .idx { font-size: 9px; opacity: .7; }
-.tile .logo { flex: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; text-align: center; padding: 2px; line-height: 1.02; }
-.tile .main { font-size: 20px; text-align: center; line-height: 1; font-weight: 700; }
+.tile .logo { flex: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: 800; text-align: center; padding: 2px; line-height: 1.02; }
 .tile .poi-name { font-size: 9px; text-align: center; color: #44506d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tile .tag { font-size: 9px; text-align: center; }
 .tile .owner { font-size: 9px; color: #0a7f53; text-align: center; min-height: 11px; }

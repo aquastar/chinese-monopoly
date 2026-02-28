@@ -10,6 +10,7 @@ const el = {
   gamePanel: document.getElementById('gamePanel'),
   board: document.getElementById('board'),
   pathLines: document.getElementById('pathLines'),
+  centerChar: document.getElementById('centerChar'),
   players: document.getElementById('players'),
   turnInfo: document.getElementById('turnInfo'),
   rollBtn: document.getElementById('rollBtn'),
@@ -40,26 +41,16 @@ const poiTemplates = [
 
 const TILE_SIZE = 92;
 
-function generatePath(count = 100) {
-  // 100格：更稀疏的蛇形街区（避免重叠）
-  const cols = 25;
-  const rowGap = 130;
-  const colGap = 108;
-  const baseX = 24;
-  const baseY = 24;
-  const rows = Math.ceil(count / cols);
+function generatePath(count = 50) {
+  const cx = 590, cy = 305, rx = 500, ry = 250;
   const path = [];
-  for (let r = 0; r < rows; r++) {
-    const colsInRow = Math.min(cols, count - path.length);
-    const indexes = Array.from({ length: colsInRow }, (_, i) => i);
-    const run = r % 2 === 0 ? indexes : indexes.reverse();
-    for (const c of run) {
-      const x = baseX + c * colGap + ((r + c) % 3 - 1) * 2;
-      const y = baseY + r * rowGap + (c % 4 === 0 ? -2 : c % 4 === 2 ? 2 : 0);
-      path.push([x, y]);
-    }
+  for (let i = 0; i < count; i++) {
+    const t = (Math.PI * 2 * i) / count - Math.PI / 2;
+    const x = Math.round(cx + rx * Math.cos(t) - TILE_SIZE / 2);
+    const y = Math.round(cy + ry * Math.sin(t) - TILE_SIZE / 2);
+    path.push([x, y]);
   }
-  return path.slice(0, count);
+  return path;
 }
 
 const game = {
@@ -125,17 +116,15 @@ function initGame() {
     });
   }
 
-  game.path = generatePath(100);
+  game.path = generatePath(50);
   const size = game.path.length;
   game.board = Array.from({ length: size }, (_, i) => {
-    const ch = chars[i % chars.length];
     const poi = poiTemplates[i % poiTemplates.length];
     let type = 'char';
-    if ([7, 15, 23, 31, 39].includes(i)) type = 'penalty';
+    if ([8, 17, 26, 35, 44].includes(i)) type = 'penalty';
     if (i === 0) type = 'start';
     return {
       i,
-      char: ch,
       type,
       poiName: poi.name,
       poiLogo: poi.logo,
@@ -145,11 +134,13 @@ function initGame() {
       price: 8 + (i % 5)
     };
   });
+  game.charPool = chars;
 
   game.current = 0;
   game.pending = null;
   game.round = 1;
   game.over = false;
+  if (el.centerChar) el.centerChar.textContent = '？';
 
   el.setupPanel.classList.add('hidden');
   document.getElementById('gamePanel').classList.remove('hidden');
@@ -174,9 +165,11 @@ function rollDice() {
   const d = 1 + Math.floor(Math.random() * 6);
   p.pos = (p.pos + d) % game.board.length;
   const tile = game.board[p.pos];
+  const ch = game.charPool[Math.floor(Math.random() * game.charPool.length)];
   el.rollResult.textContent = `${p.icon} ${p.name} 掷出了 ${d} 点，来到 #${tile.i}。`;
-  game.pending = { tile, playerId: p.id, canAvoidPenalty: tile.type === 'penalty' };
-  el.challengeText.textContent = `请 ${p.name} 读出这个字：${tile.char}`;
+  game.pending = { tile, char: ch, playerId: p.id, canAvoidPenalty: tile.type === 'penalty' };
+  el.challengeText.textContent = `请 ${p.name} 读出这个字：${ch}`;
+  if (el.centerChar) el.centerChar.textContent = ch;
   el.judgeArea.classList.remove('hidden');
   el.rollBtn.disabled = true;
   render();
@@ -188,6 +181,7 @@ function judge(correct) {
 
   const p = game.players[pending.playerId];
   const tile = pending.tile;
+  const currentChar = pending.char;
   el.judgeArea.classList.add('hidden');
 
   p.attempts += 1;
@@ -195,7 +189,7 @@ function judge(correct) {
 
   if (correct) {
     p.coins += 3;
-    log(`${p.icon} ${p.name} 读对“${tile.char}”，+3金币。`);
+    log(`${p.icon} ${p.name} 读对“${currentChar}”，+3金币。`);
 
     if (tile.type === 'penalty') {
       log(`${p.name} 因答对，免除惩罚。`);
@@ -215,10 +209,7 @@ function judge(correct) {
         }
       } else if (tile.owner !== p.id) {
         const owner = game.players[tile.owner];
-        const rent = tile.level >= 2 ? 2 : 1;
-        p.coins -= rent;
-        owner.coins += rent;
-        log(`${p.name} 经过 ${owner.name} 的地（Lv${tile.level || 1}），支付过路费 ${rent}。`);
+        log(`✅ ${p.name} 读对了字，免除 ${owner.name} 地块的过路费。`);
       } else if (tile.owner === p.id && tile.level === 1) {
         tile.level = 2;
         log(`⬆️ ${p.name} 再次到达自己的地块 #${tile.i}，升级为 Lv2（过路费 2 金币）。`);
@@ -226,9 +217,16 @@ function judge(correct) {
       maybeChanceCard(p, true);
     }
   } else {
-    log(`${p.icon} ${p.name} 读错“${tile.char}”。`);
+    log(`${p.icon} ${p.name} 读错“${currentChar}”。`);
     if (tile.type === 'penalty') {
       applyPenalty(p);
+    } else if (tile.type === 'char' && tile.owner !== null && tile.owner !== p.id) {
+      const owner = game.players[tile.owner];
+      const rent = tile.level >= 2 ? 2 : 1;
+      p.coins -= rent;
+      owner.coins += rent;
+      log(`❌ 读错触发收费：${p.name} 向 ${owner.name} 支付过路费 ${rent}（Lv${tile.level || 1}）。`);
+      maybeChanceCard(p, false);
     } else {
       maybeChanceCard(p, false);
     }
@@ -239,7 +237,7 @@ function judge(correct) {
 }
 
 function showBuyDialog(player, tile) {
-  el.buyText.textContent = `触发购买机会：地块 #${tile.i} ${tile.poiName}（字：${tile.char}），价格 ${tile.price} 金币。当前你有 ${player.coins} 金币。`;
+  el.buyText.textContent = `触发购买机会：地块 #${tile.i} ${tile.poiName}，价格 ${tile.price} 金币。当前你有 ${player.coins} 金币。`;
   el.buyArea.classList.remove('hidden');
   game.pending.buying = true;
 }
@@ -416,7 +414,7 @@ function render() {
     div.style.left = `${left}px`;
     div.style.top = `${top}px`;
     div.style.transform = `rotate(${rot}deg)`;
-    div.innerHTML = `<div class="idx">#${tile.i}</div><div class="logo" style="background:${tile.poiColor}">${tile.poiLogo}</div><div class="main">${tile.char}</div><div class="poi-name">${tile.poiName}</div><div class="tag">${tag}</div><div class="owner">${ownerName}</div><div class="tokens">${here}</div>`;
+    div.innerHTML = `<div class="idx">#${tile.i}</div><div class="logo" style="background:${tile.poiColor}">${tile.poiLogo}</div><div class="poi-name">${tile.poiName}</div><div class="tag">${tag}</div><div class="owner">${ownerName}</div><div class="tokens">${here}</div>`;
     el.board.appendChild(div);
     points.push([left + TILE_SIZE / 2, top + TILE_SIZE / 2]);
   }
