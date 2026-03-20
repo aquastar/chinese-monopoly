@@ -44,6 +44,21 @@ const poiTemplates = [
 
 const TILE_W = 72;
 const TILE_H = 102;
+const TILE_GAP = 14;
+
+function calculateBoardSize(boardW = 1320, boardH = 860) {
+  const margin = 20;
+  const left = margin;
+  const top = margin;
+  const right = Math.max(left + 400, boardW - TILE_W - margin);
+  const bottom = Math.max(top + 300, boardH - TILE_H - margin);
+  const w = right - left;
+  const h = bottom - top;
+  const perimeter = 2 * (w + h);
+  const spacing = Math.max(TILE_W, TILE_H) + TILE_GAP;
+  const maxCount = Math.max(24, Math.floor(perimeter / spacing));
+  return Math.min(52, maxCount);
+}
 
 function generatePath(count = 50, boardW = 1320, boardH = 860) {
   // 方形边缘路线：严格防重叠（步长 >= 方格尺寸 + 2）
@@ -113,6 +128,7 @@ el.nextTurn.addEventListener('click', nextTurn);
 window.addEventListener('resize', () => {
   if (!game.board.length) return;
   updateBoardLayout();
+  resizeBoardToViewport();
   game.path = generatePath(game.board.length, el.board.clientWidth, el.board.clientHeight);
   render();
 });
@@ -130,6 +146,48 @@ function renderNameInputs() {
 
 function parseChars() {
   return [...new Set(el.charList.value.split(/[\s,，、]+/).map(s => s.trim()).filter(Boolean))];
+}
+
+function buildBoard(size) {
+  game.board = Array.from({ length: size }, (_, i) => {
+    const poi = poiTemplates[i % poiTemplates.length];
+    let type = 'char';
+    if (i === 0) type = 'start';
+    return {
+      i,
+      type,
+      poiName: poi.name,
+      poiLogo: poi.logo,
+      poiColor: poi.color,
+      owner: null,
+      level: 0,
+      price: 5
+    };
+  });
+}
+
+function resizeBoardToViewport() {
+  const nextSize = calculateBoardSize(el.board.clientWidth, el.board.clientHeight);
+  if (!game.board.length || nextSize === game.board.length) return;
+
+  const oldBoard = game.board;
+  const oldSize = oldBoard.length;
+  buildBoard(nextSize);
+
+  game.players.forEach((p) => {
+    p.pos = Math.min(Math.round((p.pos / oldSize) * nextSize), nextSize - 1);
+    p.lands = new Set([...p.lands]
+      .map((idx) => Math.min(Math.round((idx / oldSize) * nextSize), nextSize - 1))
+      .filter((idx) => idx > 0));
+  });
+
+  game.board.forEach((tile, idx) => {
+    const owner = game.players.find((p) => p.lands.has(idx));
+    if (owner) {
+      tile.owner = owner.id;
+      tile.level = 1;
+    }
+  });
 }
 
 function initGame() {
@@ -159,22 +217,8 @@ function initGame() {
     });
   }
 
-  const size = 50;
-  game.board = Array.from({ length: size }, (_, i) => {
-    const poi = poiTemplates[i % poiTemplates.length];
-    let type = 'char';
-    if (i === 0) type = 'start';
-    return {
-      i,
-      type,
-      poiName: poi.name,
-      poiLogo: poi.logo,
-      poiColor: poi.color,
-      owner: null,
-      level: 0,
-      price: 5
-    };
-  });
+  const size = calculateBoardSize(el.board.clientWidth || 1320, el.board.clientHeight || 860);
+  buildBoard(size);
   game.charPool = chars;
 
   game.current = 0;
