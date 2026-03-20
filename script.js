@@ -501,27 +501,46 @@ function renderPathLines(points) {
 
 function triggerCorrectFX() {
   if (!el.fxLayer) return;
-  const bursts = 32;
-  const colors = ['#ff4d6d', '#ffb703', '#3a86ff', '#06d6a0', '#8338ec', '#fb5607'];
+  const bursts = 64;
+  const colors = ['#ff4d6d', '#ffb703', '#3a86ff', '#06d6a0', '#8338ec', '#fb5607', '#ffd166', '#00c2ff'];
   for (let i = 0; i < bursts; i++) {
     const piece = document.createElement('span');
     piece.className = 'confetti';
-    piece.style.left = `${20 + Math.random() * 60}%`;
-    piece.style.top = `${20 + Math.random() * 35}%`;
+    piece.style.left = `${8 + Math.random() * 84}%`;
+    piece.style.top = `${8 + Math.random() * 28}%`;
     piece.style.background = colors[i % colors.length];
-    piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 520}px`);
-    piece.style.setProperty('--dy', `${120 + Math.random() * 260}px`);
-    piece.style.setProperty('--rot', `${Math.random() * 1080 - 540}deg`);
-    piece.style.setProperty('--dur', `${900 + Math.random() * 700}ms`);
+    piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 900}px`);
+    piece.style.setProperty('--dy', `${180 + Math.random() * 420}px`);
+    piece.style.setProperty('--rot', `${Math.random() * 1440 - 720}deg`);
+    piece.style.setProperty('--dur', `${1100 + Math.random() * 900}ms`);
     el.fxLayer.appendChild(piece);
-    setTimeout(() => piece.remove(), 1800);
+    setTimeout(() => piece.remove(), 2300);
+  }
+
+  for (let i = 0; i < 18; i++) {
+    const coin = document.createElement('span');
+    coin.className = 'coin-rain';
+    coin.textContent = '🪙';
+    coin.style.left = `${10 + Math.random() * 80}%`;
+    coin.style.top = `${-8 - Math.random() * 10}%`;
+    coin.style.setProperty('--coin-dur', `${1300 + Math.random() * 800}ms`);
+    coin.style.setProperty('--coin-rot', `${Math.random() * 540 - 270}deg`);
+    el.fxLayer.appendChild(coin);
+    setTimeout(() => coin.remove(), 2400);
   }
 
   const halo = document.createElement('div');
   halo.className = 'success-burst';
   halo.textContent = '🎆 太棒了!';
   el.fxLayer.appendChild(halo);
-  setTimeout(() => halo.remove(), 1200);
+  setTimeout(() => halo.remove(), 1450);
+
+  if (el.centerChar) {
+    el.centerChar.classList.remove('correct-bounce');
+    void el.centerChar.offsetWidth;
+    el.centerChar.classList.add('correct-bounce');
+    setTimeout(() => el.centerChar?.classList.remove('correct-bounce'), 900);
+  }
 }
 
 function triggerWrongFX() {
@@ -530,10 +549,18 @@ function triggerWrongFX() {
   el.wrongFlash.classList.remove('animate');
   void el.wrongFlash.offsetWidth;
   el.wrongFlash.classList.add('animate');
+
+  if (el.centerChar) {
+    el.centerChar.classList.remove('wrong-shake');
+    void el.centerChar.offsetWidth;
+    el.centerChar.classList.add('wrong-shake');
+    setTimeout(() => el.centerChar?.classList.remove('wrong-shake'), 700);
+  }
+
   setTimeout(() => {
     el.wrongFlash.classList.add('hidden');
     el.wrongFlash.classList.remove('animate');
-  }, 950);
+  }, 1100);
 }
 
 function log(msg) {
