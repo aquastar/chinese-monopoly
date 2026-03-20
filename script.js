@@ -20,10 +20,6 @@ const el = {
   challengeText: document.getElementById('challengeText'),
   correctBtn: document.getElementById('correctBtn'),
   wrongBtn: document.getElementById('wrongBtn'),
-  buyArea: document.getElementById('buyArea'),
-  buyText: document.getElementById('buyText'),
-  buyYes: document.getElementById('buyYes'),
-  buyNo: document.getElementById('buyNo'),
   nextTurn: document.getElementById('nextTurn'),
   log: document.getElementById('log'),
   fxLayer: document.getElementById('fxLayer'),
@@ -122,8 +118,6 @@ el.startGame.addEventListener('click', initGame);
 el.rollBtn.addEventListener('click', rollDice);
 el.correctBtn.addEventListener('click', () => judge(true));
 el.wrongBtn.addEventListener('click', () => judge(false));
-el.buyYes.addEventListener('click', () => handleBuy(true));
-el.buyNo.addEventListener('click', () => handleBuy(false));
 el.nextTurn.addEventListener('click', nextTurn);
 window.addEventListener('resize', () => {
   if (!game.board.length) return;
@@ -284,8 +278,10 @@ function judge(correct) {
 
     if (tile.type === 'char') {
       if (tile.owner === null) {
-        showBuyDialog(p, tile);
-        return;
+        tile.owner = p.id;
+        tile.level = 1;
+        p.lands.add(tile.i);
+        log(`🎁 ${p.name} 来到无主地块 #${tile.i}（${tile.poiName}），系统直接赠予此地。`);
       } else if (tile.owner !== p.id) {
         const owner = game.players[tile.owner];
         log(`✅ ${p.name} 读对了字，免除 ${owner.name} 地块的过路费。`);
@@ -305,37 +301,6 @@ function judge(correct) {
   }
 
   checkEliminationAndWinner();
-  if (!game.over) prepareNextTurn();
-}
-
-function showBuyDialog(player, tile) {
-  el.buyText.textContent = `可购买地皮：#${tile.i} ${tile.poiName}，价格 ${tile.price} 金币。当前你有 ${player.coins} 金币。`;
-  el.buyArea.classList.remove('hidden');
-  game.pending.buying = true;
-}
-
-function handleBuy(yes) {
-  const pending = game.pending;
-  if (!pending || !pending.buying) return;
-  const p = game.players[pending.playerId];
-  const tile = pending.tile;
-
-  if (yes) {
-    if (p.coins >= tile.price) {
-      p.coins -= tile.price;
-      tile.owner = p.id;
-      tile.level = 1;
-      p.lands.add(tile.i);
-      log(`${p.name} 购买了地块 #${tile.i}（Lv1）。`);
-    } else {
-      log(`${p.name} 金币不足，购买失败。`);
-    }
-  } else {
-    log(`${p.name} 放弃购买地块 #${tile.i}。`);
-  }
-
-  checkEliminationAndWinner();
-  el.buyArea.classList.add('hidden');
   if (!game.over) prepareNextTurn();
 }
 
@@ -449,7 +414,6 @@ function prepareNextTurn() {
 function nextTurn() {
   if (game.over) return;
   el.nextTurn.classList.add('hidden');
-  el.buyArea.classList.add('hidden');
   el.rollBtn.disabled = false;
   el.rollResult.textContent = '';
 
