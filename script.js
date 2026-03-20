@@ -25,7 +25,9 @@ const el = {
   buyYes: document.getElementById('buyYes'),
   buyNo: document.getElementById('buyNo'),
   nextTurn: document.getElementById('nextTurn'),
-  log: document.getElementById('log')
+  log: document.getElementById('log'),
+  fxLayer: document.getElementById('fxLayer'),
+  wrongFlash: document.getElementById('wrongFlash')
 };
 
 const poiTemplates = [
@@ -232,6 +234,7 @@ function judge(correct) {
   if (correct) p.correct += 1;
 
   if (correct) {
+    triggerCorrectFX();
     p.coins += 3;
     log(`${p.icon} ${p.name} 读对“${currentChar}”，+3金币。`);
 
@@ -245,6 +248,7 @@ function judge(correct) {
       }
     }
   } else {
+    triggerWrongFX();
     log(`${p.icon} ${p.name} 读错“${currentChar}”。`);
     if (tile.type === 'char' && tile.owner !== null && tile.owner !== p.id) {
       const owner = game.players[tile.owner];
@@ -493,6 +497,43 @@ function renderPathLines(points) {
     dot.setAttribute('class', 'dot');
     el.pathLines.appendChild(dot);
   });
+}
+
+function triggerCorrectFX() {
+  if (!el.fxLayer) return;
+  const bursts = 32;
+  const colors = ['#ff4d6d', '#ffb703', '#3a86ff', '#06d6a0', '#8338ec', '#fb5607'];
+  for (let i = 0; i < bursts; i++) {
+    const piece = document.createElement('span');
+    piece.className = 'confetti';
+    piece.style.left = `${20 + Math.random() * 60}%`;
+    piece.style.top = `${20 + Math.random() * 35}%`;
+    piece.style.background = colors[i % colors.length];
+    piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 520}px`);
+    piece.style.setProperty('--dy', `${120 + Math.random() * 260}px`);
+    piece.style.setProperty('--rot', `${Math.random() * 1080 - 540}deg`);
+    piece.style.setProperty('--dur', `${900 + Math.random() * 700}ms`);
+    el.fxLayer.appendChild(piece);
+    setTimeout(() => piece.remove(), 1800);
+  }
+
+  const halo = document.createElement('div');
+  halo.className = 'success-burst';
+  halo.textContent = '🎆 太棒了!';
+  el.fxLayer.appendChild(halo);
+  setTimeout(() => halo.remove(), 1200);
+}
+
+function triggerWrongFX() {
+  if (!el.wrongFlash) return;
+  el.wrongFlash.classList.remove('hidden');
+  el.wrongFlash.classList.remove('animate');
+  void el.wrongFlash.offsetWidth;
+  el.wrongFlash.classList.add('animate');
+  setTimeout(() => {
+    el.wrongFlash.classList.add('hidden');
+    el.wrongFlash.classList.remove('animate');
+  }, 950);
 }
 
 function log(msg) {

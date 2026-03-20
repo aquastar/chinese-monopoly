@@ -1,6 +1,15 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: linear-gradient(180deg,#eef3ff,#f7fbff); color: #1d2433; }
 .app { width: 100%; max-width: none; margin: 0; padding: 4px 6px; }
+.fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
+.wrong-flash { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 60; background: radial-gradient(circle, rgba(255,255,255,.08), rgba(255,0,0,.08)); }
+.wrong-x { font-size: min(42vw, 360px); line-height: 1; font-weight: 900; color: #ff2b2b; text-shadow: 0 0 28px rgba(255,43,43,.45), 0 8px 0 rgba(120,0,0,.18); transform: translateY(-10vh) scale(.7) rotate(-8deg); opacity: 0; }
+.wrong-flash.animate .wrong-x { animation: wrongDrop 900ms cubic-bezier(.17,.89,.32,1.18) forwards; }
+.confetti { position: absolute; width: 14px; height: 14px; border-radius: 3px; opacity: 0; transform: translate3d(0,0,0) rotate(0deg) scale(.8); animation: confettiFly var(--dur, 1200ms) ease-out forwards; box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+.success-burst { position: absolute; left: 50%; top: 28%; transform: translate(-50%, -50%) scale(.6); padding: 14px 24px; border-radius: 999px; background: rgba(255,255,255,.92); color: #1d4ed8; font-size: clamp(22px, 4vw, 42px); font-weight: 900; letter-spacing: .04em; box-shadow: 0 18px 50px rgba(37,99,235,.18); opacity: 0; animation: successPop 1150ms ease-out forwards; }
+@keyframes confettiFly { 0% { opacity: 0; transform: translate3d(0,0,0) rotate(0deg) scale(.4); } 8% { opacity: 1; } 100% { opacity: 0; transform: translate3d(var(--dx), var(--dy), 0) rotate(var(--rot)) scale(1); } }
+@keyframes successPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); } 18% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); } 70% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(.92); } }
+@keyframes wrongDrop { 0% { opacity: 0; transform: translateY(-18vh) scale(.45) rotate(-10deg); } 20% { opacity: 1; transform: translateY(-5vh) scale(1.1) rotate(-6deg); } 55% { opacity: 1; transform: translateY(0) scale(1) rotate(-2deg); } 100% { opacity: 0; transform: translateY(58vh) scale(.9) rotate(10deg); } }
 .panel { background: #fff; border-radius: 2px; padding: 8px; box-shadow: 0 1px 4px rgba(31,61,145,.06); margin-bottom: 8px; }
 .row { display: grid; gap: 6px; margin-bottom: 8px; }
 input, select, textarea, button { font: inherit; padding: 8px; border-radius: 3px; border: 1px solid #ccd3e0; }
