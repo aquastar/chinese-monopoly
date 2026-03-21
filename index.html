@@ -23,6 +23,17 @@
         <input id="startCoins" type="number" value="100" min="1" />
       </div>
       <div class="row">
+        <label>过路费（默认 10）</label>
+        <input id="tollAmount" type="number" value="10" min="0" />
+      </div>
+      <div class="row">
+        <label>答对别人地皮后的规则</label>
+        <select id="correctOwnedAction">
+          <option value="steal" selected>抢过来</option>
+          <option value="nothing">无事发生</option>
+        </select>
+      </div>
+      <div class="row">
         <label>字表（可替换，逗号/空格/换行分隔）</label>
         <textarea id="charList" rows="6"></textarea>
       </div>

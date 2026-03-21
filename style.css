@@ -50,7 +50,7 @@ button.danger { background: #d64747; }
 .tile .tag { font-size: 12px; text-align: center; line-height: 1.05; }
 .tile .owner { font-size: 12px; color: #0a7f53; text-align: center; min-height: 12px; line-height: 1.05; }
 .tile .tokens { font-size: 20px; font-weight: 800; text-align: center; line-height: 1; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
-.tile.owned { background: color-mix(in oklab, var(--owner-color, #6a8cff) 58%, #1b2338); border-color: color-mix(in oklab, var(--owner-color, #6a8cff) 75%, #111); color: #fff; }
+.tile.owned { background: color-mix(in oklab, var(--owner-color, #6a8cff) 72%, #111827); border-color: color-mix(in oklab, var(--owner-color, #6a8cff) 86%, #05070d); color: #fff; box-shadow: 0 8px 18px color-mix(in oklab, var(--owner-color, #6a8cff) 38%, rgba(0,0,0,.38)); }
 .tile.occupied { background: color-mix(in oklab, var(--occ-color, #6a8cff) 18%, white); border-color: var(--occ-color, #6a8cff); }
 .tile.active { outline: 3px solid var(--occ-color, #ffb302); box-shadow: 0 0 0 2px #fff inset, 0 0 10px var(--occ-color, #ffb302); z-index: 3; }
 .tile.owned .idx,

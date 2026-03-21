@@ -4,6 +4,8 @@ const el = {
   playerCount: document.getElementById('playerCount'),
   playerNames: document.getElementById('playerNames'),
   startCoins: document.getElementById('startCoins'),
+  tollAmount: document.getElementById('tollAmount'),
+  correctOwnedAction: document.getElementById('correctOwnedAction'),
   charList: document.getElementById('charList'),
   startGame: document.getElementById('startGame'),
   setupPanel: document.getElementById('setupPanel'),
@@ -107,7 +109,11 @@ const game = {
   current: 0,
   pending: null,
   round: 1,
-  over: false
+  over: false,
+  settings: {
+    tollAmount: 10,
+    correctOwnedAction: 'steal'
+  }
 };
 
 el.charList.value = defaultChars;
@@ -190,6 +196,8 @@ function initGame() {
 
   const n = Number(el.playerCount.value);
   const startCoins = Number(el.startCoins.value || 100);
+  game.settings.tollAmount = Math.max(0, Number(el.tollAmount.value || 10));
+  game.settings.correctOwnedAction = el.correctOwnedAction.value || 'steal';
   const animals = ['🐯','🐰','🐼','🐵','🦊','🐸'];
   const colors = ['#e74c3c', '#3498db', '#27ae60', '#f39c12', '#8e44ad', '#16a085'];
   game.players = [];
@@ -284,7 +292,15 @@ function judge(correct) {
         log(`🎁 ${p.name} 来到无主地块 #${tile.i}（${tile.poiName}），系统直接赠予此地。`);
       } else if (tile.owner !== p.id) {
         const owner = game.players[tile.owner];
-        log(`✅ ${p.name} 读对了字，免除 ${owner.name} 地块的过路费。`);
+        if (game.settings.correctOwnedAction === 'steal') {
+          owner.lands.delete(tile.i);
+          tile.owner = p.id;
+          tile.level = 1;
+          p.lands.add(tile.i);
+          log(`⚡ ${p.name} 读对了字，成功抢下 ${owner.name} 的地块 #${tile.i}（${tile.poiName}）。`);
+        } else {
+          log(`✅ ${p.name} 读对了字，这次无事发生。`);
+        }
       }
     }
   } else {
@@ -292,7 +308,7 @@ function judge(correct) {
     log(`${p.icon} ${p.name} 读错“${currentChar}”。`);
     if (tile.type === 'char' && tile.owner !== null && tile.owner !== p.id) {
       const owner = game.players[tile.owner];
-      const rent = 1;
+      const rent = game.settings.tollAmount;
       p.coins -= rent;
       owner.coins += rent;
       owner.tollIncome += rent;
