@@ -14,6 +14,9 @@ const el = {
   pathLines: document.getElementById('pathLines'),
   centerHub: document.querySelector('.center-hub'),
   centerChar: document.getElementById('centerChar'),
+  centerPinyin: document.getElementById('centerPinyin'),
+  centerStroke: document.getElementById('centerStroke'),
+  centerWords: document.getElementById('centerWords'),
   players: document.getElementById('players'),
   turnInfo: document.getElementById('turnInfo'),
   rollBtn: document.getElementById('rollBtn'),
@@ -43,6 +46,95 @@ const poiTemplates = [
 const TILE_W = 72;
 const TILE_H = 102;
 const TILE_GAP = 14;
+
+const CHAR_INFO = {
+  '一': { pinyin: 'yī', stroke: '横', words: '一个、一人、一月' },
+  '二': { pinyin: 'èr', stroke: '横、横', words: '二月、二人、二十' },
+  '三': { pinyin: 'sān', stroke: '横、横、横', words: '三个、三天、三月' },
+  '十': { pinyin: 'shí', stroke: '横、竖', words: '十个、十天、十月' },
+  '人': { pinyin: 'rén', stroke: '撇、捺', words: '大人、人口、好人' },
+  '口': { pinyin: 'kǒu', stroke: '竖、横折、横', words: '人口、口水、开口' },
+  '手': { pinyin: 'shǒu', stroke: '撇、横、横、竖钩', words: '小手、手心、手足' },
+  '足': { pinyin: 'zú', stroke: '竖、横折、横、竖、横、撇、捺', words: '手足、足球、满足' },
+  '耳': { pinyin: 'ěr', stroke: '横、竖、竖、横、横、横', words: '耳朵、左耳、木耳' },
+  '目': { pinyin: 'mù', stroke: '竖、横折、横、横、横', words: '目光、耳目、目标' },
+  '日': { pinyin: 'rì', stroke: '竖、横折、横、横', words: '日月、生日、日子' },
+  '月': { pinyin: 'yuè', stroke: '撇、横折钩、横、横', words: '月亮、月光、三月' },
+  '山': { pinyin: 'shān', stroke: '竖、竖折、竖', words: '大山、山水、火山' },
+  '水': { pinyin: 'shuǐ', stroke: '竖钩、横撇、撇、捺', words: '口水、喝水、水果' },
+  '火': { pinyin: 'huǒ', stroke: '点、撇、撇、捺', words: '火车、上火、火山' },
+  '木': { pinyin: 'mù', stroke: '横、竖、撇、捺', words: '木头、树木、木门' },
+  '土': { pinyin: 'tǔ', stroke: '横、竖、横', words: '土地、土山、土木' },
+  '田': { pinyin: 'tián', stroke: '竖、横折、横、竖、横', words: '田地、水田、田里' },
+  '上': { pinyin: 'shàng', stroke: '竖、横、横', words: '上学、上车、上山' },
+  '下': { pinyin: 'xià', stroke: '横、竖、点', words: '下来、上下、下雨' },
+  '左': { pinyin: 'zuǒ', stroke: '横、撇、横、竖、横', words: '左手、左右、左边' },
+  '右': { pinyin: 'yòu', stroke: '横、撇、竖、横折、横', words: '右手、左右、右边' },
+  '中': { pinyin: 'zhōng', stroke: '竖、横折、横、竖', words: '中间、中国、中心' },
+  '大': { pinyin: 'dà', stroke: '横、撇、捺', words: '大小、大人、大山' },
+  '小': { pinyin: 'xiǎo', stroke: '竖钩、撇、点', words: '大小、小手、小雨' },
+  '天': { pinyin: 'tiān', stroke: '横、横、撇、捺', words: '今天、天上、天气' },
+  '地': { pinyin: 'dì', stroke: '横、竖、提、横折钩、竖、竖弯钩', words: '大地、地上、土地' },
+  '风': { pinyin: 'fēng', stroke: '撇、横折弯钩、撇、点', words: '大风、风雨、风车' },
+  '雨': { pinyin: 'yǔ', stroke: '横、竖、横折钩、竖、点、点、点、点', words: '下雨、雨水、风雨' },
+  '云': { pinyin: 'yún', stroke: '横、横、撇折、点', words: '白云、云朵、风云' },
+  '白': { pinyin: 'bái', stroke: '撇、竖、横折、横、横', words: '白云、白天、白马' },
+  '黑': { pinyin: 'hēi', stroke: '竖、横折、点、撇、横、竖、横、点、点、点、点', words: '黑白、黑马、黑板' },
+  '红': { pinyin: 'hóng', stroke: '撇折、撇折、提、横、竖、横', words: '红花、红色、红日' },
+  '黄': { pinyin: 'huáng', stroke: '横、竖、竖、横、竖、横折、横、竖、横、撇、点', words: '黄色、黄花、黄牛' },
+  '蓝': { pinyin: 'lán', stroke: '横、竖、竖、撇、捺、竖、横折、竖、竖、横', words: '蓝天、蓝色、蓝鸟' },
+  '绿': { pinyin: 'lǜ', stroke: '撇折、撇折、提、横折、横、横、竖钩、点、提、撇、捺', words: '绿色、绿草、绿叶' },
+  '花': { pinyin: 'huā', stroke: '横、竖、竖、撇、竖、撇、竖弯钩', words: '红花、花草、花朵' },
+  '草': { pinyin: 'cǎo', stroke: '横、竖、竖、竖、横折、横、横、横、竖', words: '小草、花草、草地' },
+  '虫': { pinyin: 'chóng', stroke: '竖、横折、横、竖、横、点', words: '虫子、小虫、飞虫' },
+  '鸟': { pinyin: 'niǎo', stroke: '撇、横折钩、点、竖折折钩、横', words: '小鸟、飞鸟、鸟儿' },
+  '鱼': { pinyin: 'yú', stroke: '撇、横撇、竖、横折、横、竖、横、横', words: '小鱼、金鱼、鱼水' },
+  '牛': { pinyin: 'niú', stroke: '撇、横、横、竖', words: '黄牛、水牛、牛羊' },
+  '羊': { pinyin: 'yáng', stroke: '点、撇、横、横、横、竖', words: '山羊、羊毛、牛羊' },
+  '马': { pinyin: 'mǎ', stroke: '横折、竖折折钩、横', words: '白马、马上、马车' },
+  '车': { pinyin: 'chē', stroke: '横、撇折、横、竖', words: '火车、马车、上车' },
+  '门': { pinyin: 'mén', stroke: '点、竖、横折钩', words: '开门、大门、门口' },
+  '开': { pinyin: 'kāi', stroke: '横、横、撇、竖', words: '开门、开口、开车' },
+  '关': { pinyin: 'guān', stroke: '点、撇、横、横、撇、捺', words: '关门、开关、关上' },
+  '东': { pinyin: 'dōng', stroke: '横、撇折、竖钩、撇、点', words: '东方、东西、东边' },
+  '西': { pinyin: 'xī', stroke: '横、竖、横折、撇、竖弯', words: '东西、西边、西瓜' },
+  '南': { pinyin: 'nán', stroke: '横、竖、竖、横折钩、点、撇、横、横、竖', words: '南方、东南、南北' },
+  '北': { pinyin: 'běi', stroke: '竖、横、提、撇、竖弯钩', words: '北方、东北、南北' },
+  '前': { pinyin: 'qián', stroke: '点、撇、横、竖、横折钩、横、横、竖', words: '前后、前门、前天' },
+  '后': { pinyin: 'hòu', stroke: '撇、撇、横、竖、横折、横', words: '前后、后面、后来' },
+  '里': { pinyin: 'lǐ', stroke: '竖、横折、横、横、竖、横、横', words: '里面、里外、田里' },
+  '外': { pinyin: 'wài', stroke: '撇、横撇、点、竖、点', words: '外面、里外、外地' },
+  '高': { pinyin: 'gāo', stroke: '点、横、竖、横折、横、竖、横折钩、竖、横折、横', words: '高山、高低、高大' },
+  '低': { pinyin: 'dī', stroke: '撇、竖、横、撇、竖提、横、斜钩、点', words: '高低、低头、低下' },
+  '长': { pinyin: 'cháng', stroke: '撇、横、竖提、捺', words: '长大、长短、长江' },
+  '短': { pinyin: 'duǎn', stroke: '撇、横、横、撇、点、横、竖、横折、横', words: '长短、短发、短文' },
+  '早': { pinyin: 'zǎo', stroke: '竖、横折、横、横、横、竖', words: '早上、早安、早晚' },
+  '晚': { pinyin: 'wǎn', stroke: '竖、横折、横、横、撇、横撇、竖、横折、横、撇、竖弯钩', words: '晚上、早晚、晚安' },
+  '吃': { pinyin: 'chī', stroke: '竖、横折、横、撇、横、横折弯钩', words: '吃饭、好吃、吃水' },
+  '喝': { pinyin: 'hē', stroke: '竖、横折、横、竖、横折、横、横、撇、横折钩、撇、点', words: '喝水、喝茶、吃喝' },
+  '看': { pinyin: 'kàn', stroke: '撇、横、横、撇、竖、横折、横、横', words: '看书、看见、好看' },
+  '听': { pinyin: 'tīng', stroke: '竖、横折、横、撇、撇、横、竖', words: '听见、听书、听话' },
+  '说': { pinyin: 'shuō', stroke: '点、横折提、撇、竖、横折、横、撇、竖弯钩', words: '说话、听说、小说' },
+  '读': { pinyin: 'dú', stroke: '点、横折提、横、竖、横撇、点、点、横、撇、点', words: '读书、朗读、读音' },
+  '写': { pinyin: 'xiě', stroke: '点、横撇、横折钩、横、竖折折钩、点', words: '写字、书写、写好' },
+  '学': { pinyin: 'xué', stroke: '点、点、撇、点、横撇、横钩、竖钩、横', words: '学校、学习、学生' },
+  '校': { pinyin: 'xiào', stroke: '横、竖、撇、点、点、横、撇、点、撇、捺', words: '学校、校长、校园' },
+  '老': { pinyin: 'lǎo', stroke: '横、竖、横、撇、撇、竖弯钩', words: '老师、老人、老大' },
+  '师': { pinyin: 'shī', stroke: '竖、撇、横、竖、横折钩、竖', words: '老师、师长、师生' },
+  '同': { pinyin: 'tóng', stroke: '竖、横折钩、横、竖、横折、横', words: '同学、同样、一同' },
+  '家': { pinyin: 'jiā', stroke: '点、点、横撇、横、撇、弯钩、撇、撇、撇、捺', words: '大家、我家、回家' },
+  '爸': { pinyin: 'bà', stroke: '撇、点、撇、捺、横折、竖、横、竖弯钩', words: '爸爸、爸妈、老爸' },
+  '妈': { pinyin: 'mā', stroke: '撇点、撇、横、横折、竖折折钩、横', words: '妈妈、爸妈、大妈' },
+  '你': { pinyin: 'nǐ', stroke: '撇、竖、撇、横撇、竖钩、撇、点', words: '你好、你们、你的' },
+  '我': { pinyin: 'wǒ', stroke: '撇、横、竖钩、提、斜钩、撇、点', words: '我们、我的、自我' },
+  '他': { pinyin: 'tā', stroke: '撇、竖、横折钩、竖、竖弯钩', words: '他们、他的、他人' },
+  '她': { pinyin: 'tā', stroke: '撇点、撇、横、横折钩、竖、竖弯钩', words: '她们、她的' },
+  '们': { pinyin: 'men', stroke: '撇、竖、点、竖、横折钩', words: '我们、你们、他们' },
+  '好': { pinyin: 'hǎo', stroke: '撇点、撇、横、横撇、竖钩、横', words: '你好、好人、好看' },
+  '吗': { pinyin: 'ma', stroke: '竖、横折、横、横折、竖折折钩、横', words: '好吗、是吗、对吗' },
+  '在': { pinyin: 'zài', stroke: '横、撇、竖、横、竖、横', words: '现在、正在、在家' },
+  '有': { pinyin: 'yǒu', stroke: '横、撇、竖、横折钩、横、横', words: '有人、有水、有用' }
+};
 
 function calculateBoardSize(boardW = 1320, boardH = 860) {
   const margin = 20;
@@ -227,7 +319,7 @@ function initGame() {
   game.pending = null;
   game.round = 1;
   game.over = false;
-  if (el.centerChar) el.centerChar.textContent = '？';
+  updateCenterCharInfo('？');
 
   el.setupPanel.classList.add('hidden');
   document.getElementById('gamePanel').classList.remove('hidden');
@@ -238,6 +330,22 @@ function initGame() {
     log('游戏开始。');
     render();
   });
+}
+
+function getCharInfo(ch) {
+  return CHAR_INFO[ch] || {
+    pinyin: '—',
+    stroke: '待补充',
+    words: `${ch}字、${ch}文、${ch}词`
+  };
+}
+
+function updateCenterCharInfo(ch) {
+  const info = getCharInfo(ch);
+  if (el.centerChar) el.centerChar.textContent = ch;
+  if (el.centerPinyin) el.centerPinyin.textContent = info.pinyin;
+  if (el.centerStroke) el.centerStroke.textContent = `笔顺：${info.stroke}`;
+  if (el.centerWords) el.centerWords.textContent = `常用词：${info.words}`;
 }
 
 function rollDice() {
@@ -262,7 +370,7 @@ function rollDice() {
   el.rollResult.textContent = `${p.icon} ${p.name} 掷出了 ${d} 点，来到 #${tile.i}。`;
   game.pending = { tile, char: ch, playerId: p.id };
   el.challengeText.textContent = `请 ${p.name} 读出这个字：${ch}`;
-  if (el.centerChar) el.centerChar.textContent = ch;
+  updateCenterCharInfo(ch);
   el.judgeArea.classList.remove('hidden');
   el.rollBtn.disabled = true;
   render();
