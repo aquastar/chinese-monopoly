@@ -83,7 +83,8 @@ button.danger { background: #d64747; }
 .player-sub { font-size: .8rem; color: #64748b; margin-top: 2px; }
 .player-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .stat-pill { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; background: #eef4ff; color: #274690; font-size: .8rem; font-weight: 700; }
-.player-lands { color: #475569; font-size: .84rem; line-height: 1.45; }
+.player-lands { color: #475569; font-size: .84rem; line-height: 1.45; margin-bottom: 8px; }
+.player-wrong { color: #7f1d1d; font-size: .84rem; line-height: 1.45; padding: 8px 10px; border-radius: 12px; background: rgba(254,242,242,.95); }
 .log { flex: 1; height: 100%; background: #0f1624; color: #d4dbed; min-height: 0; overflow: auto; padding: 10px; border-radius: 14px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
 @media (max-width: 900px) {
   .center-hub { grid-template-columns: 1fr; grid-template-rows: 1.1fr 1fr 1fr 1fr; }

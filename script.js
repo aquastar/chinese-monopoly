@@ -320,6 +320,7 @@ function initGame() {
       skip: 0,
       attempts: 0,
       correct: 0,
+      wrongChars: [],
       tollIncome: 0,
       eliminated: false
     });
@@ -401,6 +402,7 @@ function judge(correct) {
 
   p.attempts += 1;
   if (correct) p.correct += 1;
+  else if (!p.wrongChars.includes(currentChar)) p.wrongChars.push(currentChar);
 
   if (correct) {
     triggerCorrectFX();
@@ -609,6 +611,7 @@ function render() {
     card.style.setProperty('--player-accent', p.color);
     const acc = p.attempts ? Math.round((p.correct / p.attempts) * 100) : 0;
     const landsText = [...p.lands].sort((a, b) => a - b).map(idx => `#${idx} ${game.board[idx].poiName}`).join('、') || '无';
+    const wrongText = p.wrongChars.length ? p.wrongChars.join('、') : '暂无';
     card.innerHTML = `<div class="player-head">
         <div class="player-badge">${p.icon}</div>
         <div class="player-title">
@@ -621,7 +624,8 @@ function render() {
         <span class="stat-pill">过路费 ${p.tollIncome}</span>
         <span class="stat-pill">正确率 ${acc}%</span>
       </div>
-      <div class="player-lands"><strong>地皮：</strong>${landsText}</div>`;
+      <div class="player-lands"><strong>地皮：</strong>${landsText}</div>
+      <div class="player-wrong"><strong>答错的字：</strong>${wrongText}</div>`;
     el.players.appendChild(card);
   });
 
