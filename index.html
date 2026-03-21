@@ -62,8 +62,10 @@
               <p id="rollResult"></p>
               <div id="judgeArea" class="hidden">
                 <p id="challengeText"></p>
-                <button id="correctBtn">裁判：读对了</button>
-                <button id="wrongBtn" class="danger">裁判：读错了</button>
+                <div class="judge-buttons">
+                  <button id="correctBtn" class="judge-btn judge-correct">✅ 裁判：读对了</button>
+                  <button id="wrongBtn" class="judge-btn judge-wrong danger">❌ 裁判：读错了</button>
+                </div>
               </div>
               <div class="next-wrap">
                 <button id="nextTurn" class="hidden">➡️ 下一位</button>

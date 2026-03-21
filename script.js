@@ -241,7 +241,8 @@ function initGame() {
 }
 
 function rollDice() {
-  if (game.over) return;
+  if (game.over || el.rollBtn.disabled === true) return;
+  el.nextTurn.disabled = true;
   const p = game.players[game.current];
   if (!p || p.eliminated) {
     nextTurn();
@@ -414,6 +415,7 @@ function checkEliminationAndWinner() {
   if (alive.length <= 1) {
     game.over = true;
     el.rollBtn.disabled = true;
+    el.nextTurn.disabled = true;
     el.nextTurn.classList.add('hidden');
     if (alive.length === 1) log(`🏆 游戏结束，${alive[0].name} 获胜！`);
     else log('🏁 游戏结束，无人存活。');
@@ -422,13 +424,15 @@ function checkEliminationAndWinner() {
 
 function prepareNextTurn() {
   el.nextTurn.classList.remove('hidden');
+  el.nextTurn.disabled = false;
   el.rollBtn.disabled = true;
   game.pending = null;
   render();
 }
 
 function nextTurn() {
-  if (game.over) return;
+  if (game.over || el.nextTurn.disabled === true) return;
+  el.nextTurn.disabled = true;
   el.nextTurn.classList.add('hidden');
   el.rollBtn.disabled = false;
   el.rollResult.textContent = '';
