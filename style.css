@@ -52,6 +52,7 @@ button.danger { background: #d64747; }
 .tile .tokens { font-size: 20px; font-weight: 800; text-align: center; line-height: 1; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
 .tile.owned { background: color-mix(in oklab, var(--owner-color, #6a8cff) 72%, #111827); border-color: color-mix(in oklab, var(--owner-color, #6a8cff) 86%, #05070d); color: #fff; box-shadow: 0 8px 18px color-mix(in oklab, var(--owner-color, #6a8cff) 38%, rgba(0,0,0,.38)); }
 .tile.occupied { background: color-mix(in oklab, var(--occ-color, #6a8cff) 18%, white); border-color: var(--occ-color, #6a8cff); }
+.tile.owned.occupied { background: color-mix(in oklab, var(--owner-color, #6a8cff) 78%, #0b1220); border-color: color-mix(in oklab, var(--owner-color, #6a8cff) 90%, #020617); box-shadow: 0 10px 22px color-mix(in oklab, var(--owner-color, #6a8cff) 46%, rgba(0,0,0,.42)); }
 .tile.active { outline: 3px solid var(--occ-color, #ffb302); box-shadow: 0 0 0 2px #fff inset, 0 0 10px var(--occ-color, #ffb302); z-index: 3; }
 .tile.owned .idx,
 .tile.owned .poi-name,
