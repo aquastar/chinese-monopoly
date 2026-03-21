@@ -480,15 +480,22 @@ function render() {
   game.players.forEach((p, i) => {
     const card = document.createElement('div');
     card.className = 'player' + (i === game.current ? ' current' : '') + (p.eliminated ? ' eliminated' : '');
+    card.style.setProperty('--player-accent', p.color);
     const acc = p.attempts ? Math.round((p.correct / p.attempts) * 100) : 0;
     const landsText = [...p.lands].sort((a, b) => a - b).map(idx => `#${idx} ${game.board[idx].poiName}`).join('、') || '无';
-    card.innerHTML = `<div class="name">${p.icon} ${p.name} ${p.eliminated ? '（出局）' : ''}</div>
-      <div>金币：${p.coins}</div>
-      <div>位置：#${p.pos}</div>
-      <div>地皮数：${p.lands.size}</div>
-      <div>地皮列表：${landsText}</div>
-      <div>过路费收入：${p.tollIncome}</div>
-      <div>识字正确率：${p.correct}/${p.attempts} (${acc}%)</div>`;
+    card.innerHTML = `<div class="player-head">
+        <div class="player-badge">${p.icon}</div>
+        <div class="player-title">
+          <div class="name">${p.name} ${p.eliminated ? '（出局）' : ''}</div>
+          <div class="player-sub">位置 #${p.pos} · 地皮 ${p.lands.size}</div>
+        </div>
+      </div>
+      <div class="player-stats">
+        <span class="stat-pill">金币 ${p.coins}</span>
+        <span class="stat-pill">过路费 ${p.tollIncome}</span>
+        <span class="stat-pill">正确率 ${acc}%</span>
+      </div>
+      <div class="player-lands"><strong>地皮：</strong>${landsText}</div>`;
     el.players.appendChild(card);
   });
 
