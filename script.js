@@ -23,10 +23,9 @@ const el = {
   rollResult: document.getElementById('rollResult'),
   judgeArea: document.getElementById('judgeArea'),
   challengeText: document.getElementById('challengeText'),
+  countdownText: document.getElementById('countdownText'),
   correctBtn: document.getElementById('correctBtn'),
   wrongBtn: document.getElementById('wrongBtn'),
-  nextTurn: document.getElementById('nextTurn'),
-  log: document.getElementById('log'),
   fxLayer: document.getElementById('fxLayer'),
   wrongFlash: document.getElementById('wrongFlash')
 };
@@ -216,6 +215,8 @@ const game = {
   pending: null,
   round: 1,
   over: false,
+  timerId: null,
+  timerLeft: 0,
   settings: {
     tollAmount: 10,
     correctOwnedAction: 'steal'
@@ -230,7 +231,6 @@ el.startGame.addEventListener('click', initGame);
 el.rollBtn.addEventListener('click', rollDice);
 el.correctBtn.addEventListener('click', () => judge(true));
 el.wrongBtn.addEventListener('click', () => judge(false));
-el.nextTurn.addEventListener('click', nextTurn);
 window.addEventListener('resize', () => {
   if (!game.board.length) return;
   updateBoardLayout();
@@ -320,6 +320,7 @@ function initGame() {
       skip: 0,
       attempts: 0,
       correct: 0,
+      correctChars: [],
       wrongChars: [],
       tollIncome: 0,
       eliminated: false
@@ -355,17 +356,45 @@ function getCharInfo(ch) {
   };
 }
 
-function updateCenterCharInfo(ch) {
+function updateCenterCharInfo(ch, reveal = false) {
   const info = getCharInfo(ch);
   if (el.centerChar) el.centerChar.textContent = ch;
-  if (el.centerPinyin) el.centerPinyin.textContent = info.pinyin;
-  if (el.centerStroke) el.centerStroke.textContent = `笔顺：${info.stroke}`;
-  if (el.centerWords) el.centerWords.textContent = `常用词：${info.words}`;
+  if (el.centerPinyin) el.centerPinyin.textContent = reveal ? info.pinyin : '•••';
+  if (el.centerStroke) el.centerStroke.textContent = reveal ? `笔顺：${info.stroke}` : '笔顺：•••';
+  if (el.centerWords) el.centerWords.textContent = reveal ? `常用词：${info.words}` : '常用词：•••';
+}
+
+function pickCharForPlayer(player) {
+  const unseen = game.charPool.filter(ch => !player.correctChars?.includes(ch) && !player.wrongChars.includes(ch));
+  const wrong = player.wrongChars || [];
+  const correct = player.correctChars || [];
+  const primary = [...new Set([...wrong, ...unseen])];
+  const useCorrect = correct.length && Math.random() < 0.1;
+  const pool = useCorrect ? correct : (primary.length ? primary : game.charPool);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function clearTurnTimer() {
+  if (game.timerId) clearInterval(game.timerId);
+  game.timerId = null;
+}
+
+function startTurnTimer() {
+  clearTurnTimer();
+  game.timerLeft = 10;
+  if (el.countdownText) el.countdownText.textContent = `剩余 ${game.timerLeft} 秒`;
+  game.timerId = setInterval(() => {
+    game.timerLeft -= 1;
+    if (el.countdownText) el.countdownText.textContent = `剩余 ${game.timerLeft} 秒`;
+    if (game.timerLeft <= 0) {
+      clearTurnTimer();
+      judge(false, true);
+    }
+  }, 1000);
 }
 
 function rollDice() {
   if (game.over || el.rollBtn.disabled === true) return;
-  el.nextTurn.disabled = true;
   const p = game.players[game.current];
   if (!p || p.eliminated) {
     nextTurn();
@@ -381,28 +410,33 @@ function rollDice() {
   const d = 1 + Math.floor(Math.random() * 6);
   p.pos = (p.pos + d) % game.board.length;
   const tile = game.board[p.pos];
-  const ch = game.charPool[Math.floor(Math.random() * game.charPool.length)];
+  const ch = pickCharForPlayer(p);
   el.rollResult.textContent = `${p.icon} ${p.name} 掷出了 ${d} 点，来到 #${tile.i}。`;
   game.pending = { tile, char: ch, playerId: p.id };
   el.challengeText.textContent = `请 ${p.name} 读出这个字：${ch}`;
-  updateCenterCharInfo(ch);
+  updateCenterCharInfo(ch, false);
   el.judgeArea.classList.remove('hidden');
   el.rollBtn.disabled = true;
+  startTurnTimer();
   render();
 }
 
-function judge(correct) {
+function judge(correct, autoWrong = false) {
   const pending = game.pending;
   if (!pending || game.over) return;
 
+  clearTurnTimer();
   const p = game.players[pending.playerId];
   const tile = pending.tile;
   const currentChar = pending.char;
   el.judgeArea.classList.add('hidden');
+  updateCenterCharInfo(currentChar, true);
 
   p.attempts += 1;
-  if (correct) p.correct += 1;
-  else if (!p.wrongChars.includes(currentChar)) p.wrongChars.push(currentChar);
+  if (correct) {
+    p.correct += 1;
+    if (!p.correctChars.includes(currentChar)) p.correctChars.push(currentChar);
+  } else if (!p.wrongChars.includes(currentChar)) p.wrongChars.push(currentChar);
 
   if (correct) {
     triggerCorrectFX();
@@ -430,7 +464,7 @@ function judge(correct) {
     }
   } else {
     triggerWrongFX();
-    log(`${p.icon} ${p.name} 读错“${currentChar}”。`);
+    log(`${p.icon} ${p.name}${autoWrong ? ' 超时未作答，默认' : ''}读错“${currentChar}”。`);
     if (tile.type === 'char' && tile.owner !== null && tile.owner !== p.id) {
       const owner = game.players[tile.owner];
       const rent = game.settings.tollAmount;
@@ -538,42 +572,29 @@ function checkEliminationAndWinner() {
   const alive = game.players.filter(p => !p.eliminated);
   if (alive.length <= 1) {
     game.over = true;
+    clearTurnTimer();
     el.rollBtn.disabled = true;
-    el.nextTurn.disabled = true;
-    el.nextTurn.classList.add('hidden');
     if (alive.length === 1) log(`🏆 游戏结束，${alive[0].name} 获胜！`);
     else log('🏁 游戏结束，无人存活。');
   }
 }
 
 function prepareNextTurn() {
-  el.nextTurn.classList.remove('hidden');
-  el.nextTurn.disabled = false;
-  el.rollBtn.disabled = true;
   game.pending = null;
-  render();
-}
-
-function nextTurn() {
-  if (game.over || el.nextTurn.disabled === true) return;
-  el.nextTurn.disabled = true;
-  el.nextTurn.classList.add('hidden');
   el.rollBtn.disabled = false;
-  el.rollResult.textContent = '';
-
   let guard = 0;
   do {
     game.current = (game.current + 1) % game.players.length;
     if (game.current === 0) game.round++;
     guard++;
   } while (game.players[game.current].eliminated && guard < game.players.length + 1);
-
+  el.rollResult.textContent = '';
   render();
 }
 
 function render() {
   // board
-  el.board.querySelectorAll('.tile').forEach(n => n.remove());
+  el.board.querySelectorAll('.tile, .player-token-float').forEach(n => n.remove());
   const points = [];
   for (const tile of game.board) {
     const div = document.createElement('div');
@@ -591,7 +612,7 @@ function render() {
     }
     const ownerName = tile.owner === null ? '' : `地主：${game.players[tile.owner].icon}${game.players[tile.owner].name}`;
     const tag = tile.type === 'start' ? '🏁起点' : '';
-    const here = herePlayers.map(p => p.icon).join(' ');
+    const here = herePlayers.filter(p => p.id !== game.current).map(p => p.icon).join(' ');
     const [left, top] = game.path[tile.i];
     div.style.left = `${left}px`;
     div.style.top = `${top}px`;
@@ -601,31 +622,46 @@ function render() {
     points.push([left + TILE_W / 2, top + TILE_H / 2]);
   }
 
+  const curFloat = game.players[game.current];
+  if (curFloat) {
+    const [left, top] = game.path[curFloat.pos];
+    const token = document.createElement('div');
+    token.className = 'player-token-float';
+    token.style.setProperty('--player-accent', curFloat.color);
+    token.style.left = `${left + TILE_W + 8}px`;
+    token.style.top = `${top - 4}px`;
+    token.innerHTML = `<span class="token-emoji">${curFloat.icon}</span><span class="token-coins">💰 ${curFloat.coins}</span>`;
+    el.board.appendChild(token);
+  }
+
   renderPathLines(points);
 
   // players
   el.players.innerHTML = '';
-  game.players.forEach((p, i) => {
+  const rankedPlayers = [...game.players].sort((a, b) => b.coins - a.coins || b.lands.size - a.lands.size || a.id - b.id);
+  rankedPlayers.forEach((p, rank) => {
     const card = document.createElement('div');
-    card.className = 'player' + (i === game.current ? ' current' : '') + (p.eliminated ? ' eliminated' : '');
+    card.className = 'player' + (p.id === game.current ? ' current' : '') + (p.eliminated ? ' eliminated' : '') + (rank === 0 ? ' leader' : '');
     card.style.setProperty('--player-accent', p.color);
     const acc = p.attempts ? Math.round((p.correct / p.attempts) * 100) : 0;
-    const landsText = [...p.lands].sort((a, b) => a - b).map(idx => `#${idx} ${game.board[idx].poiName}`).join('、') || '无';
     const wrongText = p.wrongChars.length ? p.wrongChars.join('、') : '暂无';
-    card.innerHTML = `<div class="player-head">
-        <div class="player-badge">${p.icon}</div>
-        <div class="player-title">
-          <div class="name">${p.name} ${p.eliminated ? '（出局）' : ''}</div>
-          <div class="player-sub">位置 #${p.pos} · 地皮 ${p.lands.size}</div>
+    card.innerHTML = `<div class="player-main">
+        <div class="player-left">
+          <div class="player-head">
+            <div class="player-badge">${p.icon}</div>
+            <div class="player-title">
+              <div class="name">${rank === 0 ? '🥇 ' : ''}${p.name} ${p.eliminated ? '（出局）' : ''}</div>
+              <div class="player-sub">位置 #${p.pos} · 地皮 ${p.lands.size}</div>
+            </div>
+          </div>
+          <div class="player-stats">
+            <span class="stat-pill">金币 ${p.coins}</span>
+            <span class="stat-pill">过路费 ${p.tollIncome}</span>
+            <span class="stat-pill">正确率 ${acc}%</span>
+          </div>
         </div>
-      </div>
-      <div class="player-stats">
-        <span class="stat-pill">金币 ${p.coins}</span>
-        <span class="stat-pill">过路费 ${p.tollIncome}</span>
-        <span class="stat-pill">正确率 ${acc}%</span>
-      </div>
-      <div class="player-lands"><strong>地皮：</strong>${landsText}</div>
-      <div class="player-wrong"><strong>答错的字：</strong>${wrongText}</div>`;
+        <div class="player-wrong"><strong>答错的字：</strong>${wrongText}</div>
+      </div>`;
     el.players.appendChild(card);
   });
 
@@ -725,6 +761,5 @@ function triggerWrongFX() {
 }
 
 function log(msg) {
-  const t = new Date().toLocaleTimeString();
-  el.log.innerHTML = `[${t}] ${msg}<br>` + el.log.innerHTML;
+  console.log(msg);
 }
