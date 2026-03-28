@@ -15,8 +15,6 @@ const el = {
   centerHub: document.querySelector('.center-hub'),
   centerChar: document.getElementById('centerChar'),
   centerPinyin: document.getElementById('centerPinyin'),
-  centerStroke: document.getElementById('centerStroke'),
-  centerWords: document.getElementById('centerWords'),
   players: document.getElementById('players'),
   turnInfo: document.getElementById('turnInfo'),
   rollBtn: document.getElementById('rollBtn'),
@@ -360,8 +358,6 @@ function updateCenterCharInfo(ch, reveal = false) {
   const info = getCharInfo(ch);
   if (el.centerChar) el.centerChar.textContent = ch;
   if (el.centerPinyin) el.centerPinyin.textContent = reveal ? info.pinyin : '•••';
-  if (el.centerStroke) el.centerStroke.textContent = reveal ? `笔顺：${info.stroke}` : '笔顺：•••';
-  if (el.centerWords) el.centerWords.textContent = reveal ? `常用词：${info.words}` : '常用词：•••';
 }
 
 function pickCharForPlayer(player) {
