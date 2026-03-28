@@ -215,6 +215,8 @@ const game = {
   over: false,
   timerId: null,
   timerLeft: 0,
+  movingPlayerId: null,
+  movingPath: [],
   settings: {
     tollAmount: 10,
     correctOwnedAction: 'steal'
@@ -389,30 +391,49 @@ function startTurnTimer() {
   }, 1000);
 }
 
-function rollDice() {
+async function animatePlayerMove(player, steps) {
+  game.movingPlayerId = player.id;
+  game.movingPath = [player.pos];
+  render();
+  await new Promise(r => setTimeout(r, 280));
+
+  for (let i = 0; i < steps; i++) {
+    player.pos = (player.pos + 1) % game.board.length;
+    game.movingPath.push(player.pos);
+    render();
+    await new Promise(r => setTimeout(r, 260));
+  }
+
+  game.movingPath = [];
+  game.movingPlayerId = null;
+  render();
+}
+
+async function rollDice() {
   if (game.over || el.rollBtn.disabled === true) return;
   const p = game.players[game.current];
   if (!p || p.eliminated) {
-    nextTurn();
+    prepareNextTurn();
     return;
   }
   if (p.skip > 0) {
     p.skip--;
     log(`${p.icon} ${p.name} 本轮停走，还需跳过 ${p.skip} 轮。`);
-    nextTurn();
+    prepareNextTurn();
     return;
   }
 
+  el.rollBtn.disabled = true;
   const d = 1 + Math.floor(Math.random() * 6);
-  p.pos = (p.pos + d) % game.board.length;
+  const startPos = p.pos;
+  await animatePlayerMove(p, d);
   const tile = game.board[p.pos];
   const ch = pickCharForPlayer(p);
-  el.rollResult.textContent = `${p.icon} ${p.name} 掷出了 ${d} 点，来到 #${tile.i}。`;
+  el.rollResult.textContent = `${p.icon} ${p.name} 从 #${startPos} 掷出了 ${d} 点，来到 #${tile.i}。`;
   game.pending = { tile, char: ch, playerId: p.id };
   el.challengeText.textContent = `请 ${p.name} 读出这个字：${ch}`;
   updateCenterCharInfo(ch, false);
   el.judgeArea.classList.remove('hidden');
-  el.rollBtn.disabled = true;
   startTurnTimer();
   render();
 }
@@ -595,10 +616,11 @@ function render() {
   for (const tile of game.board) {
     const div = document.createElement('div');
     const currentPlayer = game.players[game.current];
+    const movingGlow = game.movingPath.includes(tile.i);
     const hasCurrent = currentPlayer && currentPlayer.pos === tile.i;
     const herePlayers = game.players.filter(p => !p.eliminated && p.pos === tile.i);
     const ownedClass = tile.owner !== null ? ' owned' : '';
-    div.className = 'tile' + ownedClass + (hasCurrent ? ' active' : '') + (herePlayers.length ? ' occupied' : '');
+    div.className = 'tile' + ownedClass + (hasCurrent ? ' active' : '') + (herePlayers.length ? ' occupied' : '') + (movingGlow ? ' moving-glow' : '');
     if (tile.owner !== null) {
       div.style.setProperty('--owner-color', game.players[tile.owner].color);
     }
@@ -622,7 +644,7 @@ function render() {
   if (curFloat) {
     const [left, top] = game.path[curFloat.pos];
     const token = document.createElement('div');
-    token.className = 'player-token-float';
+    token.className = 'player-token-float' + (game.movingPlayerId === curFloat.id ? ' moving' : '');
     token.style.setProperty('--player-accent', curFloat.color);
     token.style.left = `${left + TILE_W + 8}px`;
     token.style.top = `${top - 4}px`;

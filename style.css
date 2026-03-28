@@ -66,6 +66,7 @@ button.danger { background: #d64747; }
 .tile.occupied { background: color-mix(in oklab, var(--occ-color, #6a8cff) 18%, white); border-color: var(--occ-color, #6a8cff); }
 .tile.owned.occupied { background: color-mix(in oklab, var(--owner-color, #6a8cff) 78%, #0b1220); border-color: color-mix(in oklab, var(--owner-color, #6a8cff) 90%, #020617); box-shadow: 0 10px 22px color-mix(in oklab, var(--owner-color, #6a8cff) 46%, rgba(0,0,0,.42)); }
 .tile.active { outline: 3px solid var(--occ-color, #ffb302); box-shadow: 0 0 0 2px #fff inset, 0 0 10px var(--occ-color, #ffb302); z-index: 3; }
+.tile.moving-glow { outline: 3px solid var(--occ-color, #ffd54a); box-shadow: 0 0 0 2px rgba(255,255,255,.95) inset, 0 0 18px var(--occ-color, #ffd54a), 0 0 28px rgba(255,213,74,.45); animation: tileGlowMove .35s ease-in-out infinite alternate; z-index: 4; }
 .tile.owned .idx,
 .tile.owned .poi-name,
 .tile.owned .tag,
@@ -88,10 +89,12 @@ button.danger { background: #d64747; }
 .player-left { min-width: 0; }
 .player-lands, .log { display: none; }
 .player-token-float { position: absolute; z-index: 6; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: color-mix(in oklab, var(--player-accent, #4f8cff) 18%, white); border: 1px solid color-mix(in oklab, var(--player-accent, #4f8cff) 45%, #cbd5e1); box-shadow: 0 8px 18px rgba(15,23,42,.14); animation: tokenPulse 1.4s ease-in-out infinite; }
+.player-token-float.moving { box-shadow: 0 10px 24px rgba(15,23,42,.18), 0 0 20px color-mix(in oklab, var(--player-accent, #4f8cff) 40%, white); }
 .token-emoji { font-size: 1.2rem; }
 .token-coins { font-size: .8rem; font-weight: 800; color: #0f172a; }
 @keyframes leaderGlow { 0%,100% { box-shadow: 0 0 0 1px rgba(250,204,21,.35), 0 12px 24px rgba(234,179,8,.18); } 50% { box-shadow: 0 0 0 2px rgba(250,204,21,.55), 0 16px 30px rgba(234,179,8,.28); } }
 @keyframes tokenPulse { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes tileGlowMove { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
 @media (max-width: 900px) {
   .center-hub { grid-template-columns: 1fr; grid-template-rows: 1.1fr 1fr 1fr 1fr; }
   .cell-char, .cell-controls, .cell-players, .cell-log { grid-column: auto; grid-row: auto; }
