@@ -205,6 +205,20 @@ function updateBoardLayout() {
   }
 }
 
+function getTileFace(left, top) {
+  const bw = el.board.clientWidth || 1320;
+  const bh = el.board.clientHeight || 860;
+  const distTop = top;
+  const distBottom = Math.abs((bh - TILE_H) - top);
+  const distLeft = left;
+  const distRight = Math.abs((bw - TILE_W) - left);
+  const min = Math.min(distTop, distBottom, distLeft, distRight);
+  if (min === distTop) return 'top';
+  if (min === distBottom) return 'bottom';
+  if (min === distLeft) return 'left';
+  return 'right';
+}
+
 const game = {
   players: [],
   board: [],
@@ -620,7 +634,9 @@ function render() {
     const hasCurrent = currentPlayer && currentPlayer.pos === tile.i;
     const herePlayers = game.players.filter(p => !p.eliminated && p.pos === tile.i);
     const ownedClass = tile.owner !== null ? ' owned' : '';
-    div.className = 'tile' + ownedClass + (hasCurrent ? ' active' : '') + (herePlayers.length ? ' occupied' : '') + (movingGlow ? ' moving-glow' : '');
+    const [left, top] = game.path[tile.i];
+    const face = getTileFace(left, top);
+    div.className = 'tile face-' + face + ownedClass + (hasCurrent ? ' active' : '') + (herePlayers.length ? ' occupied' : '') + (movingGlow ? ' moving-glow' : '');
     if (tile.owner !== null) {
       div.style.setProperty('--owner-color', game.players[tile.owner].color);
     }
@@ -631,7 +647,6 @@ function render() {
     const ownerName = tile.owner === null ? '' : `地主：${game.players[tile.owner].icon}${game.players[tile.owner].name}`;
     const tag = tile.type === 'start' ? '🏁起点' : '';
     const here = herePlayers.filter(p => p.id !== game.current).map(p => p.icon).join(' ');
-    const [left, top] = game.path[tile.i];
     div.style.left = `${left}px`;
     div.style.top = `${top}px`;
     div.style.transform = 'none';

@@ -54,6 +54,7 @@
               <div class="char-card">
                 <div class="char-meta-top">
                   <span id="centerPinyin" class="char-pinyin">pinyin</span>
+                  <p id="countdownText" class="countdown-text">剩余 10 秒</p>
                 </div>
                 <div id="centerChar" class="center-char">？</div>
               </div>
@@ -68,15 +69,16 @@
                 <p id="turnInfo"></p>
                 <p id="rollResult"></p>
               </div>
-              <div class="roll-wrap">
-                <button id="rollBtn">🎲 掷骰子</button>
-              </div>
-              <div id="judgeArea" class="hidden">
-                <p id="challengeText"></p>
-                <p id="countdownText" class="countdown-text">剩余 10 秒</p>
-                <div class="judge-buttons">
-                  <button id="correctBtn" class="judge-btn judge-correct">✅ 裁判：读对了</button>
-                  <button id="wrongBtn" class="judge-btn judge-wrong danger">❌ 裁判：读错了</button>
+              <div class="judge-strip">
+                <div class="roll-wrap">
+                  <button id="rollBtn" title="掷骰子" aria-label="掷骰子">🎲</button>
+                </div>
+                <div id="judgeArea" class="hidden">
+                  <p id="challengeText"></p>
+                  <div class="judge-buttons">
+                    <button id="correctBtn" class="judge-btn judge-correct" title="读对了" aria-label="读对了">🎉</button>
+                    <button id="wrongBtn" class="judge-btn judge-wrong danger" title="读错了" aria-label="读错了">💥</button>
+                  </div>
                 </div>
               </div>
             </section>
